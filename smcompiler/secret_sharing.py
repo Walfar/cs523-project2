@@ -31,7 +31,7 @@ class Share:
         return Share(self.bn - other.bn % p)
 
     def __mul__(self, other):
-        raise NotImplementedError("You need to implement this method.")
+        return Share(self.bn * other.bn % p)
 
 
 def share_secret(secret: int, num_shares: int) -> List[Share]:
@@ -39,7 +39,7 @@ def share_secret(secret: int, num_shares: int) -> List[Share]:
     shares = list()
     s_sum = 0
     for i in range(num_shares - 1) :
-        s_i = random.randint(range(p))
+        s_i = random.randint(0, p-1)
         share_i = Share(s_i)
         shares.append(share_i)
         s_sum += s_i % p
