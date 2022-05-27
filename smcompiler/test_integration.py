@@ -7,6 +7,7 @@ ALL EXISTING TESTS IN THIS SUITE SHOULD PASS WITHOUT ANY MODIFICATION TO THEM.
 
 import time
 from multiprocessing import Process, Queue
+from numpy import char
 
 import pytest
 
@@ -76,9 +77,7 @@ def suite(parties, expr, expected):
 
 
 def test_suite1():
-    """
-    f(a, b, c) = a + b + c
-    """
+    # f(a, b, c) = a + b + c
     alice_secret = Secret()
     bob_secret = Secret()
     charlie_secret = Secret()
@@ -179,6 +178,20 @@ def test_suite6():
     suite(parties, expr, expected)
 
 
+def test_suite71():
+    # f(a, b, c) = (a ∗ b) + (b ∗ c) + (c ∗ a)
+    alice_secret = Secret()
+    bob_secret = Secret()
+
+    parties = {
+        "Alice": {alice_secret: 3},
+        "Bob": {bob_secret: 14},
+    }
+
+    expr = alice_secret * bob_secret
+    expected = 3 * 14
+    suite(parties, expr, expected)
+
 def test_suite7():
     # f(a, b, c) = (a ∗ b) + (b ∗ c) + (c ∗ a)
     alice_secret = Secret()
@@ -223,4 +236,4 @@ def test_suite8():
          ) * (david_secret + elusinia_secret)
     )
     expected = (((3 + 8) + (14 * 9) - 2) * (5 + 7))
-    suite(parties, expr, expected)
+    suite(parties, expr, expected) 

@@ -77,7 +77,6 @@ class SMCParty:
         
         # Then, we compute the protocol expression for the first round
         myShare = self.process_expression(self.protocol_spec.expr) 
-        print(f"client wiht id {self.client_id} has share {myShare.bn}")
 
         # Final round, we publish the obtained value and compute the result with the other published values
         self.comm.publish_message("final", jsonpickle.encode(myShare))
@@ -86,9 +85,7 @@ class SMCParty:
             if participant_id  == self.client_id:
                 share_list.append(myShare)
             else:    
-                share_list.append(jsonpickle.decode(self.comm.retrieve_public_message(participant_id, "final")))      
-        for s in share_list:
-            print(f"share list has {s.bn}")       
+                share_list.append(jsonpickle.decode(self.comm.retrieve_public_message(participant_id, "final")))           
         return reconstruct_secret(share_list)        
 
 
@@ -117,8 +114,6 @@ class SMCParty:
 
         if isinstance(expr, Secret):
             if expr in (list(self.value_dict.keys())):
-                print(f"{self.client_id} share is {(self.myShares[expr.id]).bn}")
-                
                 return self.myShares[expr.id]
             else:
                 return jsonpickle.decode(self.comm.retrieve_private_message(expr.id))    
@@ -141,14 +136,18 @@ class SMCParty:
             # If no scalar in the addition
             left = self.process_expression(expr.expr1)
             right = self.process_expression(expr.expr2)
+            print(f"left for {self.client_id} is {left.bn}")
+            print(f"right for {self.client_id} is {right.bn}")
             return left - right      
 
         if isinstance(expr, Multiplication):
             left = self.process_expression(expr.expr1)
             right = self.process_expression(expr.expr2)
-
-            if isinstance(left, Secret) and isinstance(right, Secret):
+            print("mul")
+            if isinstance(expr.expr1, Secret) and isinstance(expr.expr2, Secret):
+                print("instance")
                 a, b, c = self.comm.retrieve_beaver_triplet_shares(self.protocol_spec.expr.id)
+                print(f"a is {a}, b is {b}, c is {c}")
                 share_x = left - Share(a)
                 share_y = right - Share(b)
                 self.comm.publish_message("share_x", jsonpickle.encode(share_x))
@@ -163,14 +162,15 @@ class SMCParty:
                     else:    
                         share_x_list.append(jsonpickle.decode(self.comm.retrieve_public_message(participant_id, "share_x")))
                         share_y_list.append(jsonpickle.decode(self.comm.retrieve_public_message(participant_id, "share_y")))
-                share_x_val = reconstruct_secret(share_x_list)
-                share_y_val = reconstruct_secret(share_y_list)
-                share_z = c + left * share_y_val + right * share_x_val
+                share_x_val = Share(reconstruct_secret(share_x_list))
+                share_y_val = Share(reconstruct_secret(share_y_list))
+                share_z = Share(c) + left * share_y_val + right * share_x_val
                 if self.client_id == self.protocol_spec.participant_ids[0]:
                     return share_z - share_x_val * share_y_val
                 return share_z    
 
             else:
+                print("else")
                 return left * right    
         # Call specialized methods for each expression type, and have these specialized
         # methods in turn call `process_expression` on their sub-expressions to process

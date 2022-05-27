@@ -10,7 +10,7 @@ import sympy
 
 from expression import Secret
 
-p = sympy.randprime(1, 2^1024)
+p = sympy.randprime(2**29, 2**32)
 
 class Share:
     """
@@ -60,7 +60,7 @@ def reconstruct_secret(shares: List[Share]) -> int:
     secret = 0
     for s in shares : 
         secret += s.bn
-    return secret % p   
+    return secret % p  
 
 
 # Feel free to add as many methods as you want.
