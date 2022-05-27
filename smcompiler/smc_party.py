@@ -57,8 +57,6 @@ class SMCParty:
         self.protocol_spec = protocol_spec
         self.value_dict = value_dict
 
-        self.p = number.getPrime(1024)
-
         # This dict contains the corresponding part of the client for each secret when sharing it
         self.myShares = {}
 
@@ -114,9 +112,10 @@ class SMCParty:
             return share - self.process_expression(expr.expr2)
 
         if isinstance(expr, Multiplication):
-            share = self.process_expression(expr.expr1)
-            share.beaver_triplets = self.comm.retrieve_beaver_triplet_shares(self.protocol_spec.expr.id)
-            return share * self.process_expression(expr.expr2)    
+            share_x = self.process_expression(expr.expr1)
+            share_y = self.process_expression(expr.expr2)
+            a, b, c = self.comm.retrieve_beaver_triplet_shares(self.protocol_spec.expr.id)
+            self.comm.publish_message("final", json.dumps(share_x - a))
         # Call specialized methods for each expression type, and have these specialized
         # methods in turn call `process_expression` on their sub-expressions to process
         # further.
