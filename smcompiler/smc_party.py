@@ -5,21 +5,19 @@ MODIFY THIS FILE.
 """
 # You might want to import more classes if needed.
 
-import collections
 import json
-from typing import (
-    Dict,
-    Set,
-    Tuple,
-    Union
-)
+from typing import Dict
+
+from sympy import Mul
 
 from communication import Communication
 from expression import (
     Addition,
     Expression,
+    Multiplication,
     Secret,
-    Scalar
+    Scalar,
+    Substraction
 )
 from protocol import ProtocolSpec
 from secret_sharing import(
@@ -27,6 +25,7 @@ from secret_sharing import(
     share_secret,
     Share,
 )
+from Crypto.Util import number
 
 # Feel free to add as many imports as you want.
 
@@ -58,11 +57,37 @@ class SMCParty:
         self.protocol_spec = protocol_spec
         self.value_dict = value_dict
 
+        self.p = number.getPrime(1024)
+
+        # This dict contains the corresponding part of the client for each secret when sharing it
+        self.myShares = {}
+
     def run(self) -> int:
         """
         The method the client use to do the SMC.
         """
-        return 0
+
+        # Firstly, the client shares all his secrets with the other parties, using their id as the channel
+        for secret, value in self.value_dict.items():
+            shares = share_secret(value, len(self.protocol_spec.participant_ids))
+            for i in range(len(self.protocol_spec.participant_ids)):
+                if self.protocol_spec.participant_ids[i] == self.client_id:
+                    self.myShares[secret.id] = shares[i]
+                else:    
+                    self.comm.send_private_message(self.protocol_spec.participant_ids[i], secret.id, json.dumps(shares[i]))
+        
+        # Then, we compute the protocol expression for the first round
+        myShare = self.process_expression(self.protocol_spec.expr) 
+
+        # Final round, we publish the obtained value and compute the result with the other published values
+        self.comm.publish_message("final", json.dumps(myShare))
+        shareList = list()
+        for participant_id in self.protocol_spec.participant_ids:
+            if participant_id  == self.client_id:
+                shareList.append(myShare)
+            else:    
+                shareList.append(json.loads(self.comm.retrieve_public_message(participant_id, "final")))
+        return reconstruct_secret(shareList)        
 
 
     # Suggestion: To process expressions, make use of the *visitor pattern* like so:
@@ -70,15 +95,28 @@ class SMCParty:
             self,
             expr: Expression
         ) -> Share:
-        # if expr is a multiplication operation:
-        #     ...
+        
+        if isinstance(expr, Addition):
+            share = self.process_expression(expr.expr1)
+            return share + self.process_expression(expr.expr2)
 
-        # if expr is a secret:
-        #     ...
+        if isinstance(expr, Secret):
+            if (list(self.value_dict.items())[0][0]).id == expr.id:
+                return self.myShares[expr.id]
+            else:
+                return json.loads(self.comm.retrieve_private_message(expr.id))    
 
-        # if expr is a scalar:
-        #     ...
-        #
+        if isinstance(expr, Scalar):
+            return Share(expr.value)
+
+        if isinstance(expr, Substraction):
+            share = self.process_expression(expr.expr1)
+            return share - self.process_expression(expr.expr2)
+
+        if isinstance(expr, Multiplication):
+            share = self.process_expression(expr.expr1)
+            share.beaver_triplets = self.comm.retrieve_beaver_triplet_shares(self.protocol_spec.expr.id)
+            return share * self.process_expression(expr.expr2)    
         # Call specialized methods for each expression type, and have these specialized
         # methods in turn call `process_expression` on their sub-expressions to process
         # further.
