@@ -95,9 +95,7 @@ def test_suite1():
 
 
 def test_suite2():
-    """
-    f(a, b) = a - b
-    """
+    # f(a, b) = a - b
     alice_secret = Secret()
     bob_secret = Secret()
 
@@ -112,9 +110,7 @@ def test_suite2():
 
 
 def test_suite3():
-    """
-    f(a, b, c) = (a + b + c) ∗ K
-    """
+    # f(a, b, c) = (a + b + c) ∗ K
     alice_secret = Secret()
     bob_secret = Secret()
     charlie_secret = Secret()
@@ -131,9 +127,7 @@ def test_suite3():
 
 
 def test_suite4():
-    """
-    f(a, b, c) = (a + b + c) + K
-    """
+    # f(a, b, c) = (a + b + c) + K
     alice_secret = Secret()
     bob_secret = Secret()
     charlie_secret = Secret()
@@ -150,9 +144,7 @@ def test_suite4():
 
 
 def test_suite5():
-    """
-    f(a, b, c) = (a ∗ K0 + b - c) + K1
-    """
+    # f(a, b, c) = (a ∗ K0 + b - c) + K1
     alice_secret = Secret()
     bob_secret = Secret()
     charlie_secret = Secret()
@@ -169,9 +161,7 @@ def test_suite5():
 
 
 def test_suite6():
-    """
-    f(a, b, c, d) = a + b + c + d
-    """
+    # f(a, b, c, d) = a + b + c + d
     alice_secret = Secret()
     bob_secret = Secret()
     charlie_secret = Secret()
@@ -190,9 +180,7 @@ def test_suite6():
 
 
 def test_suite7():
-    """
-    f(a, b, c) = (a ∗ b) + (b ∗ c) + (c ∗ a)
-    """
+    # f(a, b, c) = (a ∗ b) + (b ∗ c) + (c ∗ a)
     alice_secret = Secret()
     bob_secret = Secret()
     charlie_secret = Secret()
@@ -213,9 +201,7 @@ def test_suite7():
 
 
 def test_suite8():
-    """
-    f(a, b, c, d, e) = ((a + K0) + b ∗ K1 - c) ∗ (d + e)
-    """
+    # f(a, b, c, d, e) = ((a + K0) + b ∗ K1 - c) ∗ (d + e)
     alice_secret = Secret()
     bob_secret = Secret()
     charlie_secret = Secret()
