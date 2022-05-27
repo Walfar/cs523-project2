@@ -3,13 +3,13 @@ Secret sharing scheme.
 """
 
 from typing import List
-from Crypto.Util import number
 
 import random
+import sympy
 
 from expression import Secret
 
-p = number.getPrime(1024)
+p = sympy.randprime(1, 2^1024)
 
 class Share:
     """
