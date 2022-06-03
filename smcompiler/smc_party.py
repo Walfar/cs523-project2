@@ -1,11 +1,9 @@
 """
 Implementation of an SMC client.
-
 MODIFY THIS FILE.
 """
 # You might want to import more classes if needed.
 
-import json
 from typing import Dict
 import jsonpickle
 
@@ -34,7 +32,6 @@ class SMCParty:
     """
     A client that executes an SMC protocol to collectively compute a value of an expression together
     with other clients.
-
     Attributes:
         client_id: Identifier of this client
         server_host: hostname of the server
@@ -56,6 +53,7 @@ class SMCParty:
         self.client_id = client_id
         self.protocol_spec = protocol_spec
         self.value_dict = value_dict
+        self.num_communication_bytes = 0
 
         # This dict contains the corresponding part of the client for each secret when sharing it
         self.myShares = {}
@@ -73,19 +71,25 @@ class SMCParty:
                 if self.protocol_spec.participant_ids[i] == self.client_id:
                     self.myShares[secret.id] = shares[i]
                 else:   
-                    self.comm.send_private_message(self.protocol_spec.participant_ids[i], secret.id, jsonpickle.encode(shares[i]))
+                    m = jsonpickle.encode(shares[i])
+                    self.num_communication_bytes += len(m)
+                    self.comm.send_private_message(self.protocol_spec.participant_ids[i], secret.id, m)
         
         # Then, we compute the protocol expression for the first round
         myShare = self.process_expression(self.protocol_spec.expr) 
 
         # Final round, we publish the obtained value and compute the result with the other published values
-        self.comm.publish_message("final", jsonpickle.encode(myShare))
+        m = jsonpickle.encode(myShare)
+        self.num_communication_bytes += len(m)
+        self.comm.publish_message("final", m)
         share_list = list()
         for participant_id in self.protocol_spec.participant_ids:
             if participant_id  == self.client_id:
                 share_list.append(myShare)
-            else:    
-                share_list.append(jsonpickle.decode(self.comm.retrieve_public_message(participant_id, "final")))           
+            else:  
+                m = self.comm.retrieve_public_message(participant_id, "final")
+                self.num_communication_bytes += len(m)
+                share_list.append(jsonpickle.decode(m))           
         return reconstruct_secret(share_list)        
 
 
@@ -116,7 +120,9 @@ class SMCParty:
             if expr in (list(self.value_dict.keys())):
                 return self.myShares[expr.id]
             else:
-                return jsonpickle.decode(self.comm.retrieve_private_message(expr.id))    
+                m = self.comm.retrieve_private_message(expr.id)
+                self.num_communication_bytes += len(m)
+                return jsonpickle.decode(m)    
 
         if isinstance(expr, Scalar):
             return Share(expr.value)
@@ -150,8 +156,11 @@ class SMCParty:
                 print(f"a is {a}, b is {b}, c is {c}")
                 share_x = left - Share(a)
                 share_y = right - Share(b)
-                self.comm.publish_message("share_x", jsonpickle.encode(share_x))
-                self.comm.publish_message("share_y", jsonpickle.encode(share_y))
+                m_x = jsonpickle.encode(share_x)
+                m_y = jsonpickle.encode(share_y)
+                self.num_communication_bytes += len(m_x) + len(m_y)
+                self.comm.publish_message("share_x", m_x)
+                self.comm.publish_message("share_y", m_y)
 
                 share_x_list = list()
                 share_y_list = list()
@@ -159,9 +168,12 @@ class SMCParty:
                     if participant_id  == self.client_id:
                         share_x_list.append(share_x)
                         share_y_list.append(share_y)
-                    else:    
-                        share_x_list.append(jsonpickle.decode(self.comm.retrieve_public_message(participant_id, "share_x")))
-                        share_y_list.append(jsonpickle.decode(self.comm.retrieve_public_message(participant_id, "share_y")))
+                    else:   
+                        m_x =  self.comm.retrieve_public_message(participant_id, "share_x")
+                        m_y = self.comm.retrieve_public_message(participant_id, "share_y")
+                        self.num_communication_bytes += len(m_x) + len(m_y)
+                        share_x_list.append(jsonpickle.decode(m_x))
+                        share_y_list.append(jsonpickle.decode(m_y))
                 share_x_val = Share(reconstruct_secret(share_x_list))
                 share_y_val = Share(reconstruct_secret(share_y_list))
                 share_z = Share(c) + left * share_y_val + right * share_x_val

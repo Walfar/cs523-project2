@@ -1,7 +1,6 @@
 """
 Integration tests that verify different aspects of the protocol.
 You can *add* new tests here, but it is best to  add them to a new test file.
-
 ALL EXISTING TESTS IN THIS SUITE SHOULD PASS WITHOUT ANY MODIFICATION TO THEM.
 """
 
