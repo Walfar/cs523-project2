@@ -15,17 +15,23 @@ def test_p():
 def test_1() :
     share1 = Share(38)
     share2 = Share(77)
-    assert(share1 + share2 == Share(38+77%p))
-    assert(share1 - share2 == Share(38-77%p))
-    assert(share1 * share2 == Share(38*77%p))
+    share_add = share1 + share2
+    share_sub = share2 - share1
+    share_mul = share1 * share2
+    assert(share_add.bn == 38+77%p)
+    assert(share_sub.bn == 77-38%p)
+    assert(share_mul.bn == 38*77%p)
 
 def test_2() :
     share1 = Share(p-1)
     share2 = Share(1)
     share3 = Share(2)
-    assert(share1 + share2 == Share(0))
-    assert(share1 - share2 == Share(p-2))
-    assert(share1 * share3 == Share(p-2))
+    share_add = share1 + share2
+    share_sub = share1 - share2
+    share_mul = share1 * share3
+    assert(share_add.bn == 0)
+    assert(share_sub.bn == p-2)
+    assert(share_mul.bn == p-2)
 
 def test_share_secret1() :
     secret = 100
@@ -33,11 +39,6 @@ def test_share_secret1() :
     assert(reconstruct_secret(shares) == secret)
 
 def test_share_secret2() :
-    secret = p-10
-    shares = share_secret(secret,p-100)
-    assert(reconstruct_secret(shares) == secret)
-
-def test_share_secret3() :
     secret = 2345
     shares = share_secret(secret,100)
     assert(reconstruct_secret(shares) == secret)

@@ -37,21 +37,16 @@ class Share:
 
 def share_secret(secret: int, num_shares: int) -> List[Share]:
     """Generate secret shares."""
-    print(f"p is {p}")
     shares = list()
     s_sum = 0
     for i in range(num_shares - 1) :
         s_i = random.randint(0, p-1)
-        print(f"s_i is {s_i}")
         share_i = Share(s_i)
         shares.append(share_i)
         s_sum += s_i % p
     num = (secret - s_sum) % p 
     share_0 = Share(num)
     shares.insert(0,share_0)
-    print(f"all shares for {secret}")
-    for s in shares:
-        print(f"{s.bn} for {secret}")
     return shares
 
 

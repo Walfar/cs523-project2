@@ -38,7 +38,7 @@ def retrieve_private_message(receiver_id: str, label: str):
     """
     res = _get_value("private", (receiver_id, label))
     if res is not None:
-        print(f"[ RETRIEVE ] RECEIVER {receiver_id} / LABEL {label}")
+        #print(f"[ RETRIEVE ] RECEIVER {receiver_id} / LABEL {label}")
         return res, 200
 
     return Response(status=404)
@@ -49,7 +49,7 @@ def publish_message(sender_id: str, label: str):
     """
     The client publish a public message on the server.
     """
-    print(f"[ PUBLISH  ] SENDER {sender_id} / LABEL {label}")
+    #print(f"[ PUBLISH  ] SENDER {sender_id} / LABEL {label}")
     _set_value("public", (sender_id, label), request.get_data())
     return Response(status=200)
 

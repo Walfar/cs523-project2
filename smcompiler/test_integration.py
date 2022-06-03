@@ -9,6 +9,7 @@ from multiprocessing import Process, Queue
 from numpy import char
 
 import pytest
+from application import runApplication
 
 from expression import Scalar, Secret
 from protocol import ProtocolSpec
@@ -177,20 +178,6 @@ def test_suite6():
     suite(parties, expr, expected)
 
 
-def test_suite71():
-    # f(a, b, c) = (a ∗ b) + (b ∗ c) + (c ∗ a)
-    alice_secret = Secret()
-    bob_secret = Secret()
-
-    parties = {
-        "Alice": {alice_secret: 3},
-        "Bob": {bob_secret: 14},
-    }
-
-    expr = alice_secret * bob_secret
-    expected = 3 * 14
-    suite(parties, expr, expected)
-
 def test_suite7():
     # f(a, b, c) = (a ∗ b) + (b ∗ c) + (c ∗ a)
     alice_secret = Secret()
@@ -236,3 +223,18 @@ def test_suite8():
     )
     expected = (((3 + 8) + (14 * 9) - 2) * (5 + 7))
     suite(parties, expr, expected) 
+
+
+def test_custom_application():
+    alice_secret = Secret()
+    bob_secret = Secret()
+    charlie_secret = Secret()
+
+    parties = {
+        "Alice": {alice_secret: 4},
+        "Bob": {bob_secret: 5.25},
+        "Charlie": {charlie_secret: 3.5},
+    }    
+    mean, _ = runApplication(parties)
+    # Mean for all grades with +0.5 should be equal to 4.75
+    assert mean == 4.75

@@ -20,7 +20,7 @@ from smc_party import SMCParty
 n represents the number of measurements we make to calculate
 the mean and the standard deviation for every performance
 """
-n = 100 
+n = 10
 
 samples_com = list()
 samples_time = list()
@@ -96,7 +96,7 @@ def suite(parties, expr):
     total_bytes_length = 0
     for t in results_performance_time :
         total_time += t
-    for l in total_bytes_length :
+    for l in results_performance_bytes :
         total_bytes_length +=l
     return total_bytes_length,total_time
 
@@ -121,6 +121,7 @@ def perform_stat(parties,expr,num_participants) :
 
 
 def num_parties_performance():
+    print("num parties perf")
     results = {}
     # test for 3 participants 
     num_participants = 3
@@ -137,7 +138,8 @@ def num_parties_performance():
     expr = (alice_secret + bob_secret + charlie_secret)
     
     perform_stat(parties,expr,num_participants)
-    results['3 participants'] = (statistical_mean,statistical_std)
+    results['3 participants'] = (statistical_mean,statistical_std) 
+    print(results['3 participants'])
 
      # test for 10 participants 
     num_participants = 10
@@ -150,30 +152,32 @@ def num_parties_performance():
     perform_stat(parties,expr,num_participants)
 
     results['10 participants'] = (statistical_mean,statistical_std)
+    print(f"results for 10 partciipants is {results['10 participants']}")
 
     # test for 100 participants , the expr is the same
-    num_participants = 100
+    num_participants = 15
     ### we need to add 90 more random people 
-    for i in range(90) :
+    for i in range(5) :
         name = get_random_string(8)
         new_secret = Secret()
         parties[name] = {new_secret : 0}
 
     perform_stat(parties,expr,num_participants)
 
-    results['100 participants'] = (statistical_mean,statistical_std)
+    results['15 participants'] = (statistical_mean,statistical_std)
+    print(f"results for 15 partciipants is {results['15 participants']}")
 
-      # test for 500 participants ,expr is the same
-    num_participants = 500
-    ### we need to add 400 more random people 
-    for i in range(400) :
+    num_participants = 25
+    ### we need to add 90 more random people 
+    for i in range(10) :
         name = get_random_string(8)
         new_secret = Secret()
         parties[name] = {new_secret : 0}
 
     perform_stat(parties,expr,num_participants)
 
-    results['500 participants'] = (statistical_mean,statistical_std)
+    results['25 participants'] = (statistical_mean,statistical_std)
+    print(f"results for 25 partciipants is {results['25 participants']}")
 
 def addition_performance():
     results = {}
@@ -195,6 +199,7 @@ def addition_performance():
     perform_stat(parties,expr,num_participants)
       
     results['3 additions'] = (statistical_mean,statistical_std)
+    print(f"results for 3 additions is {results['3 additions']}")
 
      # test for 10 additions 
     ### we need to add 7 more additions to expr
@@ -214,26 +219,7 @@ def addition_performance():
     perform_stat(parties,expr,num_participants)
 
     results['100 additions'] = (statistical_mean,statistical_std)
-
-      # test for 500 participants ,expr is the same
-
-    ### we need to add 400 more additions with alice's secret
-    for i in range(400) :
-        expr += alice_secret
-
-    perform_stat(parties,expr,num_participants)
-
-    results['500 additions'] = (statistical_mean,statistical_std)
-
-     # test for 1000 additions ,expr is the same
-
-    ### we need to add 500 more additions with alice's secret 
-    for i in range(500) :
-        expr += alice_secret
-
-    perform_stat(parties,expr,num_participants)
-
-    results['1000 additions'] = (statistical_mean,statistical_std)
+    print(f"res for 100 part is {results['100 additions']}")
 
 
 def addition_scalar_performance():
@@ -269,25 +255,7 @@ def addition_scalar_performance():
     perform_stat(parties,expr,num_participants)
 
     results['100 scalar additions'] = (statistical_mean,statistical_std)
-
-    # test for 500 additions 
-
-    for i in range(400) :
-        expr += k
-
-    perform_stat(parties,expr,num_participants)
-
-    results['500 scalar additions'] = (statistical_mean,statistical_std)
-
-      # test for 1000 additions 
-
-    ### we need to add 400 more additions with alice's secret
-    for i in range(500) :
-        expr += k
-
-    perform_stat(parties,expr,num_participants)
-
-    results['1000 scalar additions'] = (statistical_mean,statistical_std)
+    print(results['100 scalar additions'])
 
      
 def multiplication_performance():
@@ -307,18 +275,14 @@ def multiplication_performance():
     
     expr = (alice_secret * bob_secret * charlie_secret)
 
-    perform_stat(parties,expr,num_participants)
-
-    results['3 multiplications'] = (statistical_mean,statistical_std)
-
      # test for 3 Multiplications
     ### we need to add 7 more multiplications to expr
     for i in range(7) :
         expr *= alice_secret
 
-    perform_stat(parties,expr,num_participants)
+    #perform_stat(parties,expr,num_participants)
 
-    results['10 multiplications'] = (statistical_mean,statistical_std)
+    #results['10 multiplications'] = (statistical_mean,statistical_std)
 
     # test for 100 additions , we add 90 more additions
 
@@ -402,3 +366,10 @@ def multiplication_scalar_performance():
     perform_stat(parties,expr,num_participants)
 
     results['1000 scalar multiplications'] = (statistical_mean,statistical_std)
+
+
+#num_parties_performance()    
+#addition_performance()
+#addition_scalar_performance()
+#multiplication_performance()
+multiplication_scalar_performance()

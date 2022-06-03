@@ -9,6 +9,8 @@ import jsonpickle
 
 from sympy import Mul
 
+import sys
+
 from communication import Communication
 from expression import (
     Addition,
@@ -72,7 +74,7 @@ class SMCParty:
                     self.myShares[secret.id] = shares[i]
                 else:   
                     m = jsonpickle.encode(shares[i])
-                    self.num_communication_bytes += len(m)
+                    self.num_communication_bytes += sys.getsizeof(shares[i])
                     self.comm.send_private_message(self.protocol_spec.participant_ids[i], secret.id, m)
         
         # Then, we compute the protocol expression for the first round
@@ -80,7 +82,7 @@ class SMCParty:
 
         # Final round, we publish the obtained value and compute the result with the other published values
         m = jsonpickle.encode(myShare)
-        self.num_communication_bytes += len(m)
+        self.num_communication_bytes += sys.getsizeof(myShare)
         self.comm.publish_message("final", m)
         share_list = list()
         for participant_id in self.protocol_spec.participant_ids:
@@ -88,7 +90,7 @@ class SMCParty:
                 share_list.append(myShare)
             else:  
                 m = self.comm.retrieve_public_message(participant_id, "final")
-                self.num_communication_bytes += len(m)
+                self.num_communication_bytes += sys.getsizeof(jsonpickle.decode(m))
                 share_list.append(jsonpickle.decode(m))           
         return reconstruct_secret(share_list)        
 
@@ -121,7 +123,7 @@ class SMCParty:
                 return self.myShares[expr.id]
             else:
                 m = self.comm.retrieve_private_message(expr.id)
-                self.num_communication_bytes += len(m)
+                self.num_communication_bytes += sys.getsizeof(jsonpickle.decode(m))
                 return jsonpickle.decode(m)    
 
         if isinstance(expr, Scalar):
@@ -142,23 +144,18 @@ class SMCParty:
             # If no scalar in the addition
             left = self.process_expression(expr.expr1)
             right = self.process_expression(expr.expr2)
-            print(f"left for {self.client_id} is {left.bn}")
-            print(f"right for {self.client_id} is {right.bn}")
             return left - right      
 
         if isinstance(expr, Multiplication):
             left = self.process_expression(expr.expr1)
             right = self.process_expression(expr.expr2)
-            print("mul")
-            if isinstance(expr.expr1, Secret) and isinstance(expr.expr2, Secret):
-                print("instance")
+            if not isinstance(expr.expr1, Scalar) and not isinstance(expr.expr2, Scalar):
                 a, b, c = self.comm.retrieve_beaver_triplet_shares(self.protocol_spec.expr.id)
-                print(f"a is {a}, b is {b}, c is {c}")
                 share_x = left - Share(a)
                 share_y = right - Share(b)
                 m_x = jsonpickle.encode(share_x)
                 m_y = jsonpickle.encode(share_y)
-                self.num_communication_bytes += len(m_x) + len(m_y)
+                self.num_communication_bytes += sys.getsizeof(share_x) + sys.getsizeof(share_y)
                 self.comm.publish_message("share_x", m_x)
                 self.comm.publish_message("share_y", m_y)
 
@@ -171,7 +168,7 @@ class SMCParty:
                     else:   
                         m_x =  self.comm.retrieve_public_message(participant_id, "share_x")
                         m_y = self.comm.retrieve_public_message(participant_id, "share_y")
-                        self.num_communication_bytes += len(m_x) + len(m_y)
+                        self.num_communication_bytes += sys.getsizeof(jsonpickle.decode(m_x)) + sys.getsizeof(jsonpickle.decode(m_y))
                         share_x_list.append(jsonpickle.decode(m_x))
                         share_y_list.append(jsonpickle.decode(m_y))
                 share_x_val = Share(reconstruct_secret(share_x_list))
@@ -182,11 +179,8 @@ class SMCParty:
                 return share_z    
 
             else:
-                print("else")
                 return left * right    
         # Call specialized methods for each expression type, and have these specialized
         # methods in turn call `process_expression` on their sub-expressions to process
         # further.
         pass
-
-    # Feel free to add as many methods as you want.
